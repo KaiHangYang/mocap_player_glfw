@@ -11,7 +11,7 @@
 class mPoseModel {
 public:
 
-    mPoseModel(GLuint vao, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_in_mat, std::string model_path, float target_model_size, int pose_type=0);
+    mPoseModel(GLuint vao, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_in_mat, std::string model_path, float target_model_size, bool is_ar, int pose_type=0);
     ~mPoseModel();
 
     void draw(std::vector<float> points, glm::mat4 raw_cam_ex_mat_inverse, glm::mat4 & cam_ex_mat, int render_type=0, int shadow_sampler_id = 0);
@@ -39,6 +39,7 @@ private:
 
     glm::mat4 rotate_mat;
     glm::mat4 proj_mat;
+    bool is_ar;
 
     GLuint VAO;
 

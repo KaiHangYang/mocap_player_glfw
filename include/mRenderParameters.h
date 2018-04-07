@@ -15,6 +15,8 @@
 
 /************************Shader parameters*************************/
 static glm::vec3 mLightPos(0, 100, 100);
+static glm::vec3 mLightPos_AR(0, 3000, 3000);
+
 static glm::vec3 mAmbient(0.3f, 0.3f, 0.3f);
 static glm::vec3 mDiffuse(0.5f, 0.5f, 0.5f);
 static glm::vec3 mSpecular(0.4f, 0.4f, 0.4f);
@@ -26,9 +28,15 @@ static int mShadowUseShadow = 1;
 static int mShadowWndWidth = 4096;
 static int mShadowWndHeight = 4096;
 
+static float mBias = 1;
+static float mBias_AR = 300;
+
 static float mShadowNearPlane = 1.0f;
 static float mShadowFarPlane  = 10000.0f; // TODO This plane must cover all the models you will render
+static float mShadowFarPlane_AR  = 1000000.0f; // TODO This plane must cover all the models you will render
+
 static glm::mat4 mShadowProj = glm::perspective(glm::radians(90.0f), (float)mShadowWndWidth / (float)mShadowWndHeight, mShadowNearPlane, mShadowFarPlane);
+static glm::mat4 mShadowProj_AR = glm::perspective(glm::radians(90.0f), (float)mShadowWndWidth / (float)mShadowWndHeight, mShadowNearPlane, mShadowFarPlane_AR);
 
 static std::vector<glm::mat4> mShadowTransforms({
 mShadowProj * glm::lookAt(mLightPos, mLightPos + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
@@ -37,6 +45,14 @@ mShadowProj * glm::lookAt(mLightPos, mLightPos + glm::vec3( 0.0f,  1.0f,  0.0f),
 mShadowProj * glm::lookAt(mLightPos, mLightPos + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
 mShadowProj * glm::lookAt(mLightPos, mLightPos + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
 mShadowProj * glm::lookAt(mLightPos, mLightPos + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))});
+
+static std::vector<glm::mat4> mShadowTransforms_AR({
+mShadowProj_AR * glm::lookAt(mLightPos_AR, mLightPos_AR + glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+mShadowProj_AR * glm::lookAt(mLightPos_AR, mLightPos_AR + glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+mShadowProj_AR * glm::lookAt(mLightPos_AR, mLightPos_AR + glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+mShadowProj_AR * glm::lookAt(mLightPos_AR, mLightPos_AR + glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+mShadowProj_AR * glm::lookAt(mLightPos_AR, mLightPos_AR + glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+mShadowProj_AR * glm::lookAt(mLightPos_AR, mLightPos_AR + glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))});
 
 
 /******************************************************************/

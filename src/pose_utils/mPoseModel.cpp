@@ -22,11 +22,12 @@ static float skeleton_style[] = {
     0, 1.3, // right feet
 };
 
-mPoseModel::mPoseModel(GLuint vao, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_mat, std::string model_path, float target_model_size, int pose_type) {
+mPoseModel::mPoseModel(GLuint vao, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_mat, std::string model_path, float target_model_size, bool is_ar, int pose_type) {
     this->pose_shader = pose_shader;
     this->depth_shader = depth_shader;
 
     this->proj_mat = cam_mat;
+    this->is_ar = is_ar;
 
     if (vao > 0) {
         this->VAO = vao;
@@ -161,37 +162,12 @@ void mPoseModel::renderPose(std::vector<float> &vertexs, glm::mat4 view_mat, int
     }
     shader->use();
 
-    // Calculate the view pose
-    if (render_type == 0) {
-        // This render type meams to render the ground or the pose.
-        shader->setVal("renderType", 0);
-        shader->setVal("use_shadow", mShadowUseShadow);
-
-        // Here the translate mat is "-" for the view_pos
-        shader->setVal("viewPos", glm::vec3(-view_t_mat[3][0], -view_t_mat[3][1], -view_t_mat[3][2]));
-
-        // Set the light parameter
-        shader->setVal("pointLights[0].position", mLightPos);
-        shader->setVal("pointLights[0].ambient", mAmbient);
-        shader->setVal("pointLights[0].diffuse", mDiffuse);
-        shader->setVal("pointLights[0].specular", mSpecular);
-
-        shader->setVal("fragColor", mBoneColor);
-        shader->setVal("projection", this->proj_mat);
-        shader->setVal("view", view_mat);
-
-        // TODO The texture is enabled outside this function
-        shader->setVal("depth_cube", shadow_sampler_id);
-        shader->setVal("far_plane", mShadowFarPlane);
-    }
-    else {
-        // TODO Set the depth parameter
-        for (int i = 0; i < 6; ++i) {
-            shader->setVal(("shadow_mat["+std::to_string(i)+"]").c_str(), mShadowTransforms[i]);
-        }
-        shader->setVal("far_plane", mShadowFarPlane);
-        shader->setVal("lightPos", mLightPos);
-    }
+    // Some uniform has been set in the scene_utils before this function is called
+    shader->setVal("renderType", 0);
+    shader->setVal("viewPos", glm::vec3(-view_t_mat[3][0], -view_t_mat[3][1], -view_t_mat[3][2]));
+    shader->setVal("fragColor", mBoneColor);
+    shader->setVal("projection", this->proj_mat);
+    shader->setVal("view", view_mat);
 
     unsigned int * indices_ptr = &this->bone_indices[0];
     glm::mat4 trans;

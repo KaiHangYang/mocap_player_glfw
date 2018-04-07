@@ -53,6 +53,7 @@ static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) 
 mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, glm::mat4 cam_ex_mat, bool is_ar, std::string wnd_title, int pose_type) {
     this->wnd_width = wnd_width;
     this->wnd_height = wnd_height;
+    this->is_ar = is_ar;
 
     // The parameter maybe changed as reality make sure the ground_col and ground_row is even
     this->ground_col = 200;
@@ -98,7 +99,7 @@ mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, gl
     this->scene_shader = new mShader(mPoseShaderFiles[0], mPoseShaderFiles[1]);
     this->depth_shader = new mShader(mDepthShaderFiles[0], mDepthShaderFiles[1], mDepthShaderFiles[2]);
 
-    this->pose_model = new mPoseModel(this->VAO, this->scene_shader, this->depth_shader, this->cam_proj_mat, "/home/kaihang/Projects/visualization/models/", target_model_size, pose_type);
+    this->pose_model = new mPoseModel(this->VAO, this->scene_shader, this->depth_shader, this->cam_proj_mat, "/home/kaihang/Projects/visualization/models/", target_model_size, is_ar, pose_type);
     // Use the same vao for rendering the shading
     glBindVertexArray(this->VAO);
 
@@ -348,11 +349,21 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     glClear(GL_DEPTH_BUFFER_BIT);
     this->depth_shader->use();
 
-    for (int i = 0; i < 6; ++i) {
-        this->depth_shader->setVal(("shadow_mat["+std::to_string(i)+"]").c_str(), mShadowTransforms[i]);
+    if (this->is_ar) {
+        for (int i = 0; i < 6; ++i) {
+            this->depth_shader->setVal(("shadow_mat["+std::to_string(i)+"]").c_str(), mShadowTransforms_AR[i]);
+        }
+        this->depth_shader->setVal("far_plane", mShadowFarPlane_AR);
+        this->depth_shader->setVal("lightPos", mLightPos_AR);
     }
-    this->depth_shader->setVal("far_plane", mShadowFarPlane);
-    this->depth_shader->setVal("lightPos", mLightPos);
+    else {
+
+        for (int i = 0; i < 6; ++i) {
+            this->depth_shader->setVal(("shadow_mat["+std::to_string(i)+"]").c_str(), mShadowTransforms[i]);
+        }
+        this->depth_shader->setVal("far_plane", mShadowFarPlane);
+        this->depth_shader->setVal("lightPos", mLightPos);
+    }
     this->depth_shader->setVal("model", glm::mat4(1.f));
 
     glBindBuffer(GL_ARRAY_BUFFER, this->ground_vbo);
@@ -385,7 +396,6 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     this->scene_shader->setVal("renderType", 1);
     this->scene_shader->setVal("use_shadow", mShadowUseShadow);
     // Set the light parameter
-    this->scene_shader->setVal("pointLights[0].position", mLightPos);
     this->scene_shader->setVal("pointLights[0].ambient", mAmbient);
     this->scene_shader->setVal("pointLights[0].diffuse", mDiffuse);
     this->scene_shader->setVal("pointLights[0].specular", mSpecular);
@@ -396,7 +406,17 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     this->scene_shader->setVal("normMat", glm::transpose(glm::inverse(glm::mat4(1.f))));
 
     this->scene_shader->setVal("depth_cube", 1);
-    this->scene_shader->setVal("far_plane", mShadowFarPlane);
+
+    if (this->is_ar) {
+        this->scene_shader->setVal("pointLights[0].position", mLightPos_AR);
+        this->scene_shader->setVal("far_plane", mShadowFarPlane_AR);
+        this->scene_shader->setVal("shadow_bias", mBias_AR);
+    }
+    else {
+        this->scene_shader->setVal("pointLights[0].position", mLightPos);
+        this->scene_shader->setVal("far_plane", mShadowFarPlane);
+        this->scene_shader->setVal("shadow_bias", mBias);
+    }
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, this->shadow_fbo);

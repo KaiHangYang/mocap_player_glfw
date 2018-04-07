@@ -66,6 +66,8 @@ private:
     mPoseModel * pose_model;
     mOpenGLUtils * gl_session;
 
+    bool is_ar;
+
     //for debug
 };
 
