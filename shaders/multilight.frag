@@ -50,7 +50,7 @@ void main() {
 float shadowCalculation(vec3 fragPos) {
     // get vector between fragment position and light position
     float shadow = 0.0;
-    float bias = 300; // we use a much larger bias since depth is now in [near_plane, far_plane] range
+    float bias = 1; // we use a much larger bias since depth is now in [near_plane, far_plane] range
 
     float samples = 4.0;
     float offset = 0.5;

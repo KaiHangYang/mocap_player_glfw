@@ -54,18 +54,27 @@ int main() {
     glm::mat4 cam_in_mat = glm::transpose(glm::perspective(glm::radians(45.f), (float)wnd_width / wnd_height, 0.01f, 10000000.f));
     glm::mat4 cam_ex_mat = glm::transpose(glm::lookAt(glm::vec3(0, 10.f, 300.f), glm::vec3(0, 10.f, 0), glm::vec3(0, 1, 0)));
 
+
+    //glm::mat4 cam_ex_mat(1.f);
+    //MCU::getCamExMat(std::vector<float>({1.412737e+00, 1.196062e+00, -1.091680e+00}), std::vector<float>({751.990, 784.32, 2593.9756}), cam_ex_mat);
+    //glm::mat4 cam_in_mat({1110.754, 0, 525.169, 0,
+                          //0, 1116.737, 484.766, 0,
+                          //0, 0, 1, 0,
+                          //0, 0, 0, 1});
+
+
     mSceneUtils scene(wnd_width, wnd_height, cam_in_mat, cam_ex_mat, false);
 
     int cur_frame_num = 0;
     float cur_scale = 1;
 
     while (scene.windowShouldClose()) {
-    //while (scene.windowShouldClose()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
         for (int i = 0; i < num_of_joints; ++i) {
             glm::vec4 g_joint(all_joints[i][cur_frame_num], 1.f);
             g_joint = glm::transpose(cam_ex_mat) * g_joint;
+            //g_joint = cam_ex_mat * g_joint;
 
             cur_joint[3*i + 0] = g_joint.x;
             cur_joint[3*i + 1] = g_joint.y;
@@ -74,11 +83,11 @@ int main() {
 
         scene.render(cur_joint);
         cur_frame_num += 1;
+
         if (cur_frame_num >= total_frame_num) {
             cur_frame_num = 0;
         }
     }
-
     return 0;
 }
 
