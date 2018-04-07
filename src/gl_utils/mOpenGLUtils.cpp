@@ -93,6 +93,8 @@ void mOpenGLUtils::drawEnd() {
     glfwPollEvents();
 }
 
+
+
 bool mOpenGLUtils::checkShouldClose() {
     if (!checkInited()) {
         std::cout << "Glfw init failed!" << std::endl;
@@ -104,8 +106,22 @@ bool mOpenGLUtils::checkShouldClose() {
 void mOpenGLUtils::terminate() {
     glfwTerminate();
 }
+
+
+void mOpenGLUtils::captureCurFrame(cv::Mat & cur_frame) {
+    this->makeCurCtx();
+    glReadBuffer(GL_FRONT);
+
+    if (cur_frame.size[0] != this->wnd_height || cur_frame.size[1] != this->wnd_width) {
+        cur_frame = cv::Mat(this->wnd_height, this->wnd_width, CV_8UC3);
+    }
+
+    glReadPixels(0, 0, this->wnd_width, this->wnd_height, GL_BGR, GL_UNSIGNED_BYTE, cur_frame.ptr<unsigned char>());
+    cv::flip(cur_frame, cur_frame, 0);
+}
+
 // waiting for implementation
-void mOpenGLUtils::mouse_button_callback(GLFWwindow * window, int button, int action, int mods) {
-}
-void mOpenGLUtils::mouse_move_callback(GLFWwindow * window, double x, double y) {
-}
+//void mOpenGLUtils::mouse_button_callback(GLFWwindow * window, int button, int action, int mods) {
+//}
+//void mOpenGLUtils::mouse_move_callback(GLFWwindow * window, double x, double y) {
+//}

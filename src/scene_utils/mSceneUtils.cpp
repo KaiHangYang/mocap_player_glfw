@@ -71,7 +71,6 @@ mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, gl
     this->cam_ex_t_mat[0][1] = 0;this->cam_ex_t_mat[0][2] = 0;this->cam_ex_t_mat[1][0] = 0;this->cam_ex_t_mat[1][2] = 0;this->cam_ex_t_mat[2][0]= 0;this->cam_ex_t_mat[2][1] = 0;
 
     this->cam_in_mat = cam_in_mat;
-    this->trans_mat = glm::mat4(1.f);
 
     float target_model_size;
     if (is_ar) {
@@ -146,7 +145,6 @@ mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, gl
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     /*******************************************************************************/
-
     glBindVertexArray(0);
 }
 
@@ -271,34 +269,34 @@ GLuint mSceneUtils::genTexture() {
     return texture_id;
 }
 
-void mSceneUtils::transExMat() {
+void mSceneUtils::transExMat(glm::mat4 &tmp_ex_t_mat) {
+    glm::mat4 tmp_ex_r_mat = glm::mat4(glm::mat3(this->cur_cam_ex_mat));
+    tmp_ex_t_mat = glm::inverse(tmp_ex_r_mat) * this->cur_cam_ex_mat;
+    tmp_ex_t_mat[0][1] = 0;tmp_ex_t_mat[0][2] = 0;tmp_ex_t_mat[1][0] = 0;tmp_ex_t_mat[1][2] = 0;tmp_ex_t_mat[2][0]= 0;tmp_ex_t_mat[2][1] = 0;
+
     if (move_dir != 0) {
 
         glm::vec3 dir_x(this->cur_cam_ex_mat[0][0], this->cur_cam_ex_mat[1][0], this->cur_cam_ex_mat[2][0]);
         glm::vec3 dir_y(this->cur_cam_ex_mat[0][1], this->cur_cam_ex_mat[1][1], this->cur_cam_ex_mat[2][1]);
         glm::vec3 dir_z(-this->cur_cam_ex_mat[0][2], -this->cur_cam_ex_mat[1][2], -this->cur_cam_ex_mat[2][2]);
-        
-        //glm::vec3 dir_x(1.0, 0.0, 0.0);
-        //glm::vec3 dir_y(0.0, 1.0, 0.0);
-        //glm::vec3 dir_z(0.0, 0.0, 1.0);
 
         if (move_dir == 1) {
-            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_x * this->move_step_scale);
+            tmp_ex_t_mat = glm::translate(tmp_ex_t_mat, -move_step * dir_x * this->move_step_scale);
         }
         else if (move_dir == -1) {
-            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_x * this->move_step_scale);
+            tmp_ex_t_mat = glm::translate(tmp_ex_t_mat, move_step * dir_x * this->move_step_scale);
         }
         else if (move_dir == 2) {
-            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_y * this->move_step_scale / 2.f);
+            tmp_ex_t_mat = glm::translate(tmp_ex_t_mat, -move_step * dir_y * this->move_step_scale / 2.f);
         }
         else if (move_dir == -2) {
-            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_y * this->move_step_scale / 2.f);
+            tmp_ex_t_mat = glm::translate(tmp_ex_t_mat, move_step * dir_y * this->move_step_scale / 2.f);
         }
         else if (move_dir == -3) {
-            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_z * this->move_step_scale * 3.f);
+            tmp_ex_t_mat = glm::translate(tmp_ex_t_mat, -move_step * dir_z * this->move_step_scale * 3.f);
         }
         else if (move_dir == 3) {
-            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_z * this->move_step_scale * 3.f);
+            tmp_ex_t_mat = glm::translate(tmp_ex_t_mat, move_step * dir_z * this->move_step_scale * 3.f);
         }
 
         move_dir = 0;
@@ -323,8 +321,8 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     if (!is_surround) {
         // move freely
         glm::mat4 tmp_ex_t_mat, tmp_ex_r_mat;
-        this->transExMat(); // calculate the new trans_mat
-        tmp_ex_t_mat = this->trans_mat * this->cam_ex_t_mat;
+
+        this->transExMat(tmp_ex_t_mat); // calculate the new trans_mat
         tmp_ex_r_mat = glm::mat4(glm::mat3(this->cur_cam_ex_mat));
         mRawRotate::rotateExMat(this->wnd_width, this->wnd_width, tmp_ex_r_mat);
         this->cur_cam_ex_mat = tmp_ex_r_mat * tmp_ex_t_mat;
@@ -443,7 +441,7 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     if (is_reset) {
         is_reset = false;
         this->pose_model->resetRotate();
-        this->trans_mat = glm::mat4(1.f);
+        this->cur_cam_ex_mat = this->cam_ex_mat;
     }
 }
 

@@ -23,7 +23,7 @@ private:
     void setTextureData(cv::Mat frame);
     std::vector<GLfloat> getGroundVertexs();
     std::vector<GLfloat> getGroundColor();
-    void transExMat();
+    void transExMat(glm::mat4 &tmp_ex_t_mat);
 
     void surroundOnePoint(glm::mat4 & model_mat);
 
@@ -51,7 +51,6 @@ private:
     glm::mat4 cam_ex_mat_inverse;
     glm::mat4 cam_in_mat;
     glm::mat4 rotate_mat;
-    glm::mat4 trans_mat;
     glm::mat4 cam_ex_t_mat;
     glm::mat4 cam_ex_r_mat;
     glm::mat4 cur_cam_ex_mat;

@@ -51,7 +51,7 @@ int main() {
     }
     /**********************************************************************************/
 
-    glm::mat4 cam_in_mat = glm::transpose(glm::perspective(glm::radians(45.f), (float)wnd_width / wnd_height, 0.01f, 10000000.f));
+    glm::mat4 cam_in_mat = glm::transpose(glm::perspective(glm::radians(45.f), (float)wnd_width / wnd_height, 0.01f, 1000000.f));
     glm::mat4 cam_ex_mat = glm::transpose(glm::lookAt(glm::vec3(0, 10.f, 300.f), glm::vec3(0, 10.f, 0), glm::vec3(0, 1, 0)));
     mSceneUtils scene(wnd_width, wnd_height, cam_in_mat, cam_ex_mat, false);
 
