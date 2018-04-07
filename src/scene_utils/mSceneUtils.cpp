@@ -31,10 +31,10 @@ static void keybutton_callback(GLFWwindow * window, int key, int scancode, int a
             move_dir = -1;
         }
         else if (key == GLFW_KEY_W) {
-            move_dir = 3;
+            move_dir = 2;
         }
         else if (key == GLFW_KEY_S) {
-            move_dir = -3;
+            move_dir = -2;
         }
         else if (key == GLFW_KEY_O) {
             is_surround = !is_surround;
@@ -46,18 +46,17 @@ static void keybutton_callback(GLFWwindow * window, int key, int scancode, int a
 }
 
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    move_dir = -yoffset * 2;
+    move_dir = yoffset * 3;
 }
 
 
-mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, glm::mat4 cam_ex_mat, int pose_type, std::string wnd_title) {
+mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, glm::mat4 cam_ex_mat, bool is_ar, std::string wnd_title, int pose_type) {
     this->wnd_width = wnd_width;
     this->wnd_height = wnd_height;
 
     // The parameter maybe changed as reality make sure the ground_col and ground_row is even
     this->ground_col = 200;
     this->ground_row = 200;
-    this->ground_size = 2000.0f;
 
     this->do_use_surround = false;
     this->surround_center = glm::vec3(0.f, 0.f, 0.f);
@@ -70,17 +69,26 @@ mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, gl
     this->cam_ex_t_mat = glm::inverse(this->cam_ex_r_mat) * this->cam_ex_mat;
     this->cam_ex_t_mat[0][1] = 0;this->cam_ex_t_mat[0][2] = 0;this->cam_ex_t_mat[1][0] = 0;this->cam_ex_t_mat[1][2] = 0;this->cam_ex_t_mat[2][0]= 0;this->cam_ex_t_mat[2][1] = 0;
 
-    this->cur_cam_ex_t_mat = this->cam_ex_t_mat;
-
     this->cam_in_mat = cam_in_mat;
-    this->rotate_mat = glm::mat4(1.f);
     this->trans_mat = glm::mat4(1.f);
 
-    this->cam_proj_mat = glm::transpose(glm::mat4({
-        2.0*this->cam_in_mat[0][0] / wnd_width, 0, -1 + 2.0*this->cam_in_mat[0][2] / wnd_width, 0.0,
-        0, -2.0*this->cam_in_mat[1][1]/wnd_height, 1 - 2.0*this->cam_in_mat[1][2] / wnd_height, 0.0,
-        0, 0, 1, -2 * this->cam_in_mat[0][0],
-        0, 0, 1, 0}));
+    float target_model_size;
+    if (is_ar) {
+        target_model_size = 30 * 2;
+        this->ground_size = 2000.0f;
+        this->move_step_scale = 1.f;
+        this->cam_proj_mat = glm::transpose(glm::mat4({
+            2.0*this->cam_in_mat[0][0] / wnd_width, 0, -1 + 2.0*this->cam_in_mat[0][2] / wnd_width, 0.0,
+            0, -2.0*this->cam_in_mat[1][1]/wnd_height, 1 - 2.0*this->cam_in_mat[1][2] / wnd_height, 0.0,
+            0, 0, 1, -2 * this->cam_in_mat[0][0],
+            0, 0, 1, 0}));
+    }
+    else {
+        target_model_size = 2 * 1;
+        this->ground_size = 20.f;
+        this->move_step_scale = 0.03f;
+        this->cam_proj_mat = glm::transpose(this->cam_in_mat);
+    }
 
     this->gl_session = new mOpenGLUtils(wnd_title, this->wnd_width, this->wnd_height);
     this->gl_session->setCallback(mRawRotate::mouse_button_callback, mRawRotate::mouse_move_callback, keybutton_callback, scroll_callback);
@@ -90,7 +98,7 @@ mSceneUtils::mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, gl
     this->scene_shader = new mShader(mPoseShaderFiles[0], mPoseShaderFiles[1]);
     this->depth_shader = new mShader(mDepthShaderFiles[0], mDepthShaderFiles[1], mDepthShaderFiles[2]);
 
-    this->pose_model = new mPoseModel(this->VAO, this->wnd_width, this->wnd_height, this->scene_shader, this->depth_shader, this->cam_in_mat , "/home/kaihang/Projects/visualization/models/", 30 * 2, pose_type);
+    this->pose_model = new mPoseModel(this->VAO, this->scene_shader, this->depth_shader, this->cam_proj_mat, "/home/kaihang/Projects/visualization/models/", target_model_size, pose_type);
     // Use the same vao for rendering the shading
     glBindVertexArray(this->VAO);
 
@@ -262,59 +270,34 @@ GLuint mSceneUtils::genTexture() {
     return texture_id;
 }
 
-//void mSceneUtils::rotateExMat(glm::mat4 & ex_mat, glm::mat4 rotate_mat) {
-    //for (int i = 0; i < 3; ++i) {
-        //glm::vec3 c_p(ex_mat[0][i], ex_mat[1][i], ex_mat[2][i]);
-        //c_p = glm::normalize(c_p);
-        //glm::vec4 c_p_4 = rotate_mat * glm::vec4(c_p, 1.0);
-
-        //ex_mat[0][i] = c_p_4[0];
-        //ex_mat[1][i] = c_p_4[1];
-        //ex_mat[2][i] = c_p_4[2];
-    //}
-//}
-
-void mSceneUtils::rotateExMat(glm::mat4 & ex_mat, glm::mat4 rotate_mat) {
-    for (int i = 0; i < 3; ++i) {
-
-        glm::vec3 c_p(ex_mat[0][i], ex_mat[1][i], ex_mat[2][i]);
-        c_p = glm::normalize(c_p);
-        glm::vec4 c_p_4 = rotate_mat * glm::vec4(c_p, 1.0);
-
-        ex_mat[0][i] = c_p_4[0];
-        ex_mat[1][i] = c_p_4[1];
-        ex_mat[2][i] = c_p_4[2];
-    }
-}
-
-void mSceneUtils::transExMat(glm::mat4 ex_mat) {
+void mSceneUtils::transExMat() {
     if (move_dir != 0) {
 
-        glm::vec3 dir_x(ex_mat[0][0], ex_mat[1][0], ex_mat[2][0]);
-        glm::vec3 dir_y(ex_mat[0][1], ex_mat[1][1], ex_mat[2][1]);
-        glm::vec3 dir_z(-ex_mat[0][2], -ex_mat[1][2], -ex_mat[2][2]);
+        glm::vec3 dir_x(this->cur_cam_ex_mat[0][0], this->cur_cam_ex_mat[1][0], this->cur_cam_ex_mat[2][0]);
+        glm::vec3 dir_y(this->cur_cam_ex_mat[0][1], this->cur_cam_ex_mat[1][1], this->cur_cam_ex_mat[2][1]);
+        glm::vec3 dir_z(-this->cur_cam_ex_mat[0][2], -this->cur_cam_ex_mat[1][2], -this->cur_cam_ex_mat[2][2]);
         
         //glm::vec3 dir_x(1.0, 0.0, 0.0);
         //glm::vec3 dir_y(0.0, 1.0, 0.0);
         //glm::vec3 dir_z(0.0, 0.0, 1.0);
 
         if (move_dir == 1) {
-            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_x);
+            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_x * this->move_step_scale);
         }
         else if (move_dir == -1) {
-            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_x);
+            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_x * this->move_step_scale);
         }
         else if (move_dir == 2) {
-            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_y);
+            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_y * this->move_step_scale / 2.f);
         }
         else if (move_dir == -2) {
-            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_y);
+            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_y * this->move_step_scale / 2.f);
         }
         else if (move_dir == -3) {
-            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_z);
+            this->trans_mat = glm::translate(this->trans_mat, -move_step * dir_z * this->move_step_scale * 3.f);
         }
         else if (move_dir == 3) {
-            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_z);
+            this->trans_mat = glm::translate(this->trans_mat, move_step * dir_z * this->move_step_scale * 3.f);
         }
 
         move_dir = 0;
@@ -338,19 +321,12 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     //if (!this->do_use_surround) {
     if (!is_surround) {
         // move freely
-        glm::mat4 cur_rotate = mRawRotate::getRotateMat(this->wnd_width, this->wnd_width, this->cur_cam_ex_mat);
-        this->rotate_mat = cur_rotate * this->rotate_mat;
-        // must translate first
-        this->transExMat(this->cur_cam_ex_mat);
-        this->cur_cam_ex_t_mat = this->trans_mat * this->cam_ex_t_mat;
-
-        // then rotate here I use the identity matrix to set the initial camera pose
-        this->cur_cam_ex_mat = this->cam_ex_r_mat;
-        //this->cur_cam_ex_mat = glm::mat4(1.f);
-        //this->cur_cam_ex_mat[1][1] = -1.0;
-        //this->cur_cam_ex_mat[2][2] = -1.0;
-        this->rotateExMat(this->cur_cam_ex_mat, this->rotate_mat);
-        this->cur_cam_ex_mat = this->cur_cam_ex_mat * this->cur_cam_ex_t_mat;
+        glm::mat4 tmp_ex_t_mat, tmp_ex_r_mat;
+        this->transExMat(); // calculate the new trans_mat
+        tmp_ex_t_mat = this->trans_mat * this->cam_ex_t_mat;
+        tmp_ex_r_mat = glm::mat4(glm::mat3(this->cur_cam_ex_mat));
+        mRawRotate::rotateExMat(this->wnd_width, this->wnd_width, tmp_ex_r_mat);
+        this->cur_cam_ex_mat = tmp_ex_r_mat * tmp_ex_t_mat;
     }
     else {
         // TODO Here the line below is moved from the above, I don't know what will happen to the surround now.
@@ -447,7 +423,6 @@ void mSceneUtils::render(std::vector<float> points_3d) {
     if (is_reset) {
         is_reset = false;
         this->pose_model->resetRotate();
-        this->rotate_mat = glm::mat4(1.f);
         this->trans_mat = glm::mat4(1.f);
     }
 }

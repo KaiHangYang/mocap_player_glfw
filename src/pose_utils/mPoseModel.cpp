@@ -22,15 +22,11 @@ static float skeleton_style[] = {
     0, 1.3, // right feet
 };
 
-mPoseModel::mPoseModel(GLuint vao, int wnd_width, int wnd_height, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_mat, std::string model_path, float model_size, int pose_type) {
+mPoseModel::mPoseModel(GLuint vao, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_mat, std::string model_path, float target_model_size, int pose_type) {
     this->pose_shader = pose_shader;
     this->depth_shader = depth_shader;
 
-    this->model_size = model_size;
-
-    this->cam_in_mat = cam_mat;
-    this->wnd_width = wnd_width;
-    this->wnd_height = wnd_height;
+    this->proj_mat = cam_mat;
 
     if (vao > 0) {
         this->VAO = vao;
@@ -54,17 +50,15 @@ mPoseModel::mPoseModel(GLuint vao, int wnd_width, int wnd_height, mShader * pose
         exit(-1);
     }
 
-    // this proj_mat contains view matrix
-    this->proj_mat = glm::transpose(glm::mat4({
-        2.0*this->cam_in_mat[0][0] / wnd_width, 0, -1 + 2.0*this->cam_in_mat[0][2] / wnd_width, 0.0,
-        0, -2.0*this->cam_in_mat[1][1]/wnd_height, 1 - 2.0*this->cam_in_mat[1][2] / wnd_height, 0.0,
-        0, 0, 1, -2 * this->cam_in_mat[0][0],
-        0, 0, 1, 0}));
+    this->model_size = 30 * 2;
+    this->model_scale = target_model_size / this->model_size;
+    this->model_size = target_model_size;
 
     this->mesh_reader = new mMeshReader(this->VAO);
     this->mesh_reader->addMesh(model_path + "sphere-30.ply");
     this->mesh_reader->addMesh(model_path + "cylinder-30.ply");
 }
+
 mPoseModel::~mPoseModel() {
     this->mesh_reader->~mMeshReader();
 }
@@ -109,7 +103,7 @@ void mPoseModel::renderPose(std::vector<float> &vertexs) {
             if (!vertexFlags[line[j]]) {
                 vertexFlags[line[j]] = true;
 
-                curmodel = glm::scale(glm::mat4(1.f), glm::vec3(0.95, 0.95, 0.95));
+                curmodel = glm::scale(glm::mat4(1.f), this->model_scale * glm::vec3(0.95, 0.95, 0.95));
                 curmodel = glm::translate(glm::mat4(1.0f), glm::vec3(vertexs[3 * line[j]], vertexs[3 * line[j] + 1], vertexs[3 * line[j] + 2])) * curmodel;
 
                 shader->setVal("model", curmodel);
@@ -134,7 +128,7 @@ void mPoseModel::renderPose(std::vector<float> &vertexs) {
         else {
             curmodel = glm::rotate(glm::mat4(1.0), angle, glm::normalize(glm::cross(vFrom, vTo)));
         }
-        glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), glm::vec3(0.7, length/this->model_size, 0.7));
+        glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), glm::vec3(0.7, length/this->model_size, 0.7)) * glm::scale(glm::mat4(1.f), glm::vec3(this->model_scale));
 
         curmodel = trans * curmodel * scaleMat;
         
@@ -211,7 +205,7 @@ void mPoseModel::renderPose(std::vector<float> &vertexs, glm::mat4 view_mat, int
             if (!vertexFlags[line[j]]) {
                 vertexFlags[line[j]] = true;
 
-                curmodel = glm::scale(glm::mat4(1.f), glm::vec3(0.8, 0.8, 0.8));
+                curmodel = glm::scale(glm::mat4(1.f), this->model_scale * glm::vec3(0.8, 0.8, 0.8));
                 curmodel = glm::translate(glm::mat4(1.0f), glm::vec3(vertexs[3 * line[j]], vertexs[3 * line[j] + 1], vertexs[3 * line[j] + 2])) * curmodel;
 
                 shader->setVal("model", curmodel);
@@ -237,7 +231,7 @@ void mPoseModel::renderPose(std::vector<float> &vertexs, glm::mat4 view_mat, int
         else {
             curmodel = glm::rotate(glm::mat4(1.0), angle, glm::normalize(glm::cross(vFrom, vTo)));
         }
-        glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), glm::vec3(skeleton_style[2*i + 1], length/this->model_size, skeleton_style[2*i + 1]));
+        glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), glm::vec3(skeleton_style[2*i + 1], length/this->model_size, skeleton_style[2*i + 1])) * glm::scale(glm::mat4(1.0), glm::vec3(this->model_scale));
 
         curmodel = trans * curmodel * scaleMat;
         

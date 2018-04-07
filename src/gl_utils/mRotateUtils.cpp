@@ -107,16 +107,15 @@ namespace mRawRotate {
         }
     }
 
-    glm::mat4 getRotateMat(int wnd_width, int wnd_height, glm::mat4 view_mat) {
-        glm::mat4 result_mat = glm::mat4(1.f);
+    void rotateExMat(int wnd_width, int wnd_height, glm::mat4 & view_r_mat) {
 
         if (initX != curX || initY != curY) {
 
-            glm::vec3 dir_x(view_mat[0][0], view_mat[1][0], view_mat[2][0]);
-            glm::vec3 dir_y(view_mat[0][1], view_mat[1][1], view_mat[2][1]);
+            glm::vec3 dir_x(view_r_mat[0][0], view_r_mat[1][0], view_r_mat[2][0]);
+            glm::vec3 dir_y(0, 1, 0);
 
             float div_x = curX - initX;
-            float div_y =  - curY + initY;
+            float div_y =   curY - initY;
 
             float x_angle = div_x / wnd_width * 3.141592653589;
             float y_angle = div_y / wnd_height * 3.141592653589;
@@ -127,9 +126,8 @@ namespace mRawRotate {
             initX = curX;
             initY = curY;
 
-            result_mat = result_mat_y * result_mat_x;
-        }
+            view_r_mat = view_r_mat * result_mat_y * result_mat_x;
 
-        return result_mat;
+        }
     }
 };

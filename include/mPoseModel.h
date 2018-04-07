@@ -11,7 +11,7 @@
 class mPoseModel {
 public:
 
-    mPoseModel(GLuint vao, int wnd_width, int wnd_height, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_mat, std::string model_path, float model_size, int pose_type);
+    mPoseModel(GLuint vao, mShader * pose_shader, mShader * depth_shader, glm::mat4 cam_in_mat, std::string model_path, float target_model_size, int pose_type=0);
     ~mPoseModel();
 
     void draw(std::vector<float> points, glm::mat4 raw_cam_ex_mat_inverse, glm::mat4 & cam_ex_mat, int render_type=0, int shadow_sampler_id = 0);
@@ -31,10 +31,8 @@ private:
 
     mMeshReader *mesh_reader;
 
-    glm::mat4 cam_in_mat;
-    int wnd_width;
-    int wnd_height;
     float model_size;
+    float model_scale;
 
     mShader * depth_shader;
     mShader * pose_shader;

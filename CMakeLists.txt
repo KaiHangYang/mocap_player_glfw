@@ -20,15 +20,15 @@ SET(M_LINK_DIRS "/usr/local/lib")
 INCLUDE_DIRECTORIES(${M_INCLUDE_DIRS})
 LINK_DIRECTORIES(${M_LINK_DIRS})
 
-
 ADD_SUBDIRECTORY(src/bvh_parser)
 ADD_SUBDIRECTORY(src/scene_utils)
 ADD_SUBDIRECTORY(src/gl_utils)
 ADD_SUBDIRECTORY(src/pose_utils)
+ADD_SUBDIRECTORY(src/cal_utils)
 
-SET(M_LINK_LIBS bvh_parser scene_utils gl_utils pose_utils) # Set link libraries of mine
+SET(M_LINK_LIBS ${M_LINK_LIBS} bvh_parser scene_utils gl_utils pose_utils cal_utils) # Set link libraries of mine
 SET(M_LINK_LIBS ${M_LINK_LIBS} ${OPENGL_gl_LIBRARY} glfw ${GLEW_LIBRARIES} ${ASSIMP_LIBRARIES}) # Set the link libraries of gl
-SET(M_LINK_LIBS ${M_LINK_LIBS} opencv_core opencv_highgui opencv_imgcodecs opencv_imgproc)
+SET(M_LINK_LIBS ${M_LINK_LIBS} opencv_core opencv_highgui opencv_imgcodecs opencv_imgproc opencv_videoio opencv_calib3d)
 
 ADD_EXECUTABLE(main src/main/main.cpp)
-LINK_LIBRARIES(main ${M_LINK_LIBS})
+TARGET_LINK_LIBRARIES(main ${M_LINK_LIBS})

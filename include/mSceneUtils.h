@@ -10,7 +10,7 @@
 
 class mSceneUtils {
 public:
-    mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, glm::mat4 cam_ex_mat, int pose_type=0, std::string wnd_title = std::string("Scene"));
+    mSceneUtils(int wnd_width, int wnd_height, glm::mat4 cam_in_mat, glm::mat4 cam_ex_mat, bool is_ar=false, std::string wnd_title = std::string("Scene"), int pose_type=0);
     ~mSceneUtils();
 
     bool windowShouldClose();
@@ -23,8 +23,7 @@ private:
     void setTextureData(cv::Mat frame);
     std::vector<GLfloat> getGroundVertexs();
     std::vector<GLfloat> getGroundColor();
-    void rotateExMat(glm::mat4 & ex_mat, glm::mat4 rotate_mat);
-    void transExMat(glm::mat4 ex_mat);
+    void transExMat();
 
     void surroundOnePoint(glm::mat4 & model_mat);
 
@@ -34,6 +33,7 @@ private:
     int ground_row;
     int array_size;
     float ground_size;
+    float move_step_scale;
 
     GLuint VAO;
 
@@ -55,7 +55,6 @@ private:
     glm::mat4 cam_ex_t_mat;
     glm::mat4 cam_ex_r_mat;
     glm::mat4 cur_cam_ex_mat;
-    glm::mat4 cur_cam_ex_t_mat;
 
     /***** center surround *****/
     glm::vec3 surround_center;
@@ -66,7 +65,6 @@ private:
 
     mPoseModel * pose_model;
     mOpenGLUtils * gl_session;
-
 
     //for debug
 };

@@ -8,7 +8,7 @@
 #include <string>
 
 /************************Shader parameters*************************/
-static glm::vec3 mLightPos(0, 3000, 3000);
+static glm::vec3 mLightPos(0, 300, 100);
 static glm::vec3 mAmbient(0.3f, 0.3f, 0.3f);
 static glm::vec3 mDiffuse(0.5f, 0.5f, 0.5f);
 static glm::vec3 mSpecular(0.4f, 0.4f, 0.4f);
@@ -20,7 +20,7 @@ static int mShadowUseShadow = 1;
 static int mShadowWndWidth = 4096;
 static int mShadowWndHeight = 4096;
 
-static float mShadowNearPlane = 1.0f;
+static float mShadowNearPlane = 1.f;
 static float mShadowFarPlane  = 100000.0f; // TODO This plane must cover all the models you will render
 static glm::mat4 mShadowProj = glm::perspective(glm::radians(90.0f), (float)mShadowWndWidth / (float)mShadowWndHeight, mShadowNearPlane, mShadowFarPlane);
 

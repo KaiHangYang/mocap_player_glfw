@@ -23,6 +23,6 @@ namespace mRawRotate {
 
     void mouse_button_callback(GLFWwindow * window, int button, int action, int mods);
     void mouse_move_callback(GLFWwindow * window, double x, double y);
-    glm::mat4 getRotateMat(int wnd_width, int wnd_height, glm::mat4 view_mat);
+    void rotateExMat(int wnd_width, int wnd_height, glm::mat4 & view_mat);
 };
 #endif
