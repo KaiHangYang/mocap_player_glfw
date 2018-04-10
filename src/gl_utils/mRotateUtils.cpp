@@ -126,7 +126,7 @@ namespace mRawRotate {
             initX = curX;
             initY = curY;
 
-            view_r_mat = view_r_mat * result_mat_y * result_mat_x;
+            view_r_mat = view_r_mat * result_mat_x * result_mat_y;
 
         }
     }
